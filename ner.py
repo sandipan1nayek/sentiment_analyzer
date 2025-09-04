@@ -74,6 +74,12 @@ class EntityExtractor:
         logger.info("Entity extraction completed")
         return df_with_entities
     
+    def extract_entities_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Alias for extract_entities_from_dataframe for compatibility
+        """
+        return self.extract_entities_from_dataframe(df)
+    
     def get_top_entities(self, df: pd.DataFrame, entity_type: str = None, top_n: int = 10) -> List[Tuple[str, int]]:
         """
         Get top entities by frequency

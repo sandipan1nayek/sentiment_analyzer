@@ -12,6 +12,29 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+class DataCleaner:
+    """Professional data cleaning class"""
+    
+    def __init__(self):
+        """Initialize the data cleaner"""
+        self.logger = logging.getLogger(__name__)
+    
+    def clean_text(self, text: str) -> str:
+        """Clean individual text"""
+        return clean_text(text)
+    
+    def clean_data(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Clean entire dataframe"""
+        return clean_data(df)
+    
+    def clean_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Clean entire dataframe - alias for clean_data"""
+        return clean_data(df)
+    
+    def preprocess_for_sentiment(self, text: str) -> str:
+        """Preprocess text for sentiment analysis"""
+        return preprocess_for_sentiment(text)
+
 def clean_text(text: str) -> str:
     """
     Clean individual text by removing URLs, mentions, hashtags, emojis, and extra whitespace

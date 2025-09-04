@@ -1,8 +1,13 @@
 """
-Sentiment Analysis Pipeline - Main Streamlit Application
+Professional Sentiment Analysis Application
+A production-grade sentiment analysis platform for news and social media content
 
-This application fetches news headlines and tweets for a given topic,
-performs sentiment analysis, and provides interactive visualizations.
+Features:
+- Real-time data fetching from Reddit, HackerNews, and NewsAPI
+- Advanced phrase analysis with contextual insights
+- Professional visualizations with stable, clear charts
+- Comprehensive entity analysis and sentiment correlation
+- Multi-source data integration with quality metrics
 """
 
 import streamlit as st
@@ -10,433 +15,498 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 import logging
+import time
 import sys
 import os
 
-# Add current directory to Python path for imports
+# Add current directory to path for imports
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-# Import custom modules
-try:
-    import config
-    from data_fetching import fetch_all_data
-    from data_cleaning import clean_data, preprocess_for_sentiment
-    from sentiment_analysis import SentimentAnalyzer, get_sentiment_summary, filter_by_sentiment
-    from ner import EntityExtractor, create_entity_summary, get_entities_for_wordcloud
-    from visualization import SentimentVisualizer, create_summary_metrics, filter_data_by_timerange
-except ImportError as e:
-    st.error(f"Error importing modules: {e}")
-    st.stop()
+# Import professional modules
+from data_fetching import ProfessionalDataFetcher
+from sentiment_analysis import SentimentAnalyzer
+from ner import EntityExtractor
+from visualization import ProfessionalVisualizer, create_professional_metrics
+from phrase_analysis import ProfessionalPhraseAnalyzer
+from data_cleaning import DataCleaner
+import config
 
-# Set up logging
-logging.basicConfig(level=logging.INFO)
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
-# Configure Streamlit page
-st.set_page_config(**config.PAGE_CONFIG)
+# Page configuration
+st.set_page_config(
+    page_title="Professional Sentiment Analyzer",
+    page_icon="📊",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
-class SentimentAnalysisPipeline:
-    """Main pipeline class for sentiment analysis"""
+# Professional CSS styling
+st.markdown("""
+<style>
+    .main-header {
+        background: linear-gradient(90deg, #1f77b4, #2ca02c);
+        color: white;
+        padding: 1rem;
+        border-radius: 10px;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    .metric-card {
+        background: white;
+        padding: 1rem;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border-left: 4px solid #1f77b4;
+    }
+    .status-success {
+        color: #28a745;
+        font-weight: bold;
+    }
+    .status-warning {
+        color: #ffc107;
+        font-weight: bold;
+    }
+    .status-error {
+        color: #dc3545;
+        font-weight: bold;
+    }
+    .professional-sidebar {
+        background-color: #f8f9fa;
+        padding: 1rem;
+        border-radius: 10px;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+class ProfessionalSentimentApp:
+    """Main application class for professional sentiment analysis"""
     
     def __init__(self):
-        """Initialize the pipeline"""
-        self.sentiment_analyzer = SentimentAnalyzer()
-        self.entity_extractor = EntityExtractor()
-        self.visualizer = SentimentVisualizer()
-        
-        # Initialize session state
-        if 'data' not in st.session_state:
-            st.session_state.data = pd.DataFrame()
-        if 'processed_data' not in st.session_state:
-            st.session_state.processed_data = pd.DataFrame()
-        if 'last_topic' not in st.session_state:
-            st.session_state.last_topic = ""
-        if 'last_days' not in st.session_state:
-            st.session_state.last_days = 7
+        """Initialize the professional application"""
+        self.initialize_components()
+        self.initialize_session_state()
     
-    def run_pipeline(self, topic: str, days_back: int) -> pd.DataFrame:
-        """
-        Run the complete sentiment analysis pipeline
-        
-        Args:
-            topic (str): Topic to analyze
-            days_back (int): Number of days to look back
-            
-        Returns:
-            pd.DataFrame: Processed data with sentiment analysis
-        """
+    def initialize_components(self):
+        """Initialize all professional components"""
         try:
-            # Step 1: Fetch data
-            with st.status("Fetching data...", expanded=True) as status:
-                st.write("🔍 Searching for news articles...")
-                st.write("🐦 Searching for tweets...")
-                
-                raw_data = fetch_all_data(topic, days_back)
-                
-                if raw_data.empty:
-                    st.error("No data found for the given topic and time range.")
-                    return pd.DataFrame()
-                
-                st.write(f"✅ Found {len(raw_data)} total items")
-                status.update(label="Data fetched successfully!", state="complete")
-            
-            # Step 2: Clean data
-            with st.status("Cleaning data...", expanded=False) as status:
-                cleaned_data = clean_data(raw_data)
-                st.write(f"✅ Cleaned data: {len(cleaned_data)} items remaining")
-                status.update(label="Data cleaned successfully!", state="complete")
-            
-            # Step 3: Perform sentiment analysis
-            with st.status("Analyzing sentiment...", expanded=False) as status:
-                sentiment_data = self.sentiment_analyzer.analyze_dataframe(cleaned_data)
-                st.write("✅ Sentiment analysis completed")
-                status.update(label="Sentiment analysis completed!", state="complete")
-            
-            # Step 4: Extract entities
-            with st.status("Extracting entities...", expanded=False) as status:
-                if self.entity_extractor.nlp:
-                    final_data = self.entity_extractor.extract_entities_from_dataframe(sentiment_data)
-                    st.write("✅ Named entities extracted")
-                else:
-                    final_data = sentiment_data
-                    st.warning("SpaCy model not available. Skipping entity extraction.")
-                status.update(label="Entity extraction completed!", state="complete")
-            
-            return final_data
-            
+            self.data_fetcher = ProfessionalDataFetcher()
+            self.sentiment_analyzer = SentimentAnalyzer()
+            self.entity_extractor = EntityExtractor()
+            self.visualizer = ProfessionalVisualizer()
+            self.phrase_analyzer = ProfessionalPhraseAnalyzer()
+            self.data_cleaner = DataCleaner()
+            logger.info("All professional components initialized successfully")
         except Exception as e:
-            st.error(f"Error in pipeline: {str(e)}")
-            logger.error(f"Pipeline error: {e}")
-            return pd.DataFrame()
+            logger.error(f"Error initializing components: {e}")
+            st.error(f"Initialization error: {e}")
     
-    def display_summary_metrics(self, df: pd.DataFrame):
-        """Display summary metrics in the sidebar"""
-        if df.empty:
-            return
-        
-        metrics = create_summary_metrics(df)
-        
-        st.sidebar.markdown("### 📊 Summary Metrics")
-        
-        col1, col2 = st.sidebar.columns(2)
-        with col1:
-            st.metric("Total Items", metrics['total_items'])
-            st.metric("Avg Sentiment", f"{metrics['avg_sentiment']:.3f}")
-        
-        with col2:
-            st.metric("Positive %", f"{metrics['positive_percentage']:.1f}%")
-            st.metric("Negative %", f"{metrics['negative_percentage']:.1f}%")
+    def initialize_session_state(self):
+        """Initialize session state variables"""
+        if 'analysis_data' not in st.session_state:
+            st.session_state.analysis_data = pd.DataFrame()
+        if 'last_update' not in st.session_state:
+            st.session_state.last_update = None
+        if 'processing_status' not in st.session_state:
+            st.session_state.processing_status = "Ready"
+        if 'data_quality_score' not in st.session_state:
+            st.session_state.data_quality_score = 0.0
+        if 'phrase_insights' not in st.session_state:
+            st.session_state.phrase_insights = []
     
-    def display_time_series_analysis(self, df: pd.DataFrame):
-        """Display time series analysis"""
-        st.header("📈 Time Series Analysis")
-        
-        if df.empty:
-            st.info("No data available for time series analysis.")
-            return
-        
-        # Create time series chart
-        time_fig = self.visualizer.create_time_series_chart(df)
-        st.plotly_chart(time_fig, use_container_width=True)
-        
-        # Additional time-based insights
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.subheader("📅 Daily Sentiment Trends")
-            if 'timestamp' in df.columns and 'compound' in df.columns:
-                df['date'] = pd.to_datetime(df['timestamp']).dt.date
-                daily_sentiment = df.groupby('date')['compound'].mean().reset_index()
-                st.line_chart(daily_sentiment.set_index('date'))
-        
-        with col2:
-            st.subheader("⏰ Hourly Activity")
-            if 'timestamp' in df.columns:
-                df['hour'] = pd.to_datetime(df['timestamp']).dt.hour
-                hourly_counts = df['hour'].value_counts().sort_index()
-                st.bar_chart(hourly_counts)
-    
-    def display_sentiment_distribution(self, df: pd.DataFrame):
-        """Display sentiment distribution"""
-        st.header("🎯 Sentiment Distribution")
-        
-        if df.empty:
-            st.info("No data available for sentiment distribution.")
-            return
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            # Pie chart
-            dist_fig = self.visualizer.create_sentiment_distribution_chart(df)
-            st.plotly_chart(dist_fig, use_container_width=True)
-        
-        with col2:
-            # Source comparison
-            source_fig = self.visualizer.create_source_comparison_chart(df)
-            st.plotly_chart(source_fig, use_container_width=True)
-    
-    def display_word_clouds(self, df: pd.DataFrame):
-        """Display word clouds for different sentiments"""
-        st.header("☁️ Word Clouds")
-        
-        if df.empty:
-            st.info("No data available for word clouds.")
-            return
-        
-        col1, col2 = st.columns(2)
-        
-        # Positive sentiment word cloud
-        with col1:
-            st.subheader("Positive Sentiment")
-            positive_data = filter_by_sentiment(df, 'Positive')
-            if not positive_data.empty:
-                positive_text = ' '.join(positive_data['text'].astype(str))
-                if positive_text.strip():
-                    pos_fig = self.visualizer.create_wordcloud(
-                        positive_text, 
-                        "Positive Sentiment Word Cloud", 
-                        'Greens'
-                    )
-                    st.pyplot(pos_fig)
-                else:
-                    st.info("No positive sentiment text available.")
-            else:
-                st.info("No positive sentiment data found.")
-        
-        # Negative sentiment word cloud
-        with col2:
-            st.subheader("Negative Sentiment")
-            negative_data = filter_by_sentiment(df, 'Negative')
-            if not negative_data.empty:
-                negative_text = ' '.join(negative_data['text'].astype(str))
-                if negative_text.strip():
-                    neg_fig = self.visualizer.create_wordcloud(
-                        negative_text, 
-                        "Negative Sentiment Word Cloud", 
-                        'Reds'
-                    )
-                    st.pyplot(neg_fig)
-                else:
-                    st.info("No negative sentiment text available.")
-            else:
-                st.info("No negative sentiment data found.")
-    
-    def display_entity_analysis(self, df: pd.DataFrame):
-        """Display named entity analysis"""
-        st.header("🏷️ Named Entity Recognition")
-        
-        if df.empty or 'entities' not in df.columns:
-            st.info("No entity data available.")
-            return
-        
-        entity_summary = create_entity_summary(df)
-        
-        if entity_summary['total_entities'] == 0:
-            st.info("No entities found in the data.")
-            return
-        
-        # Display entity summary
-        col1, col2, col3 = st.columns(3)
-        
-        with col1:
-            st.metric("Total Entities", entity_summary['total_entities'])
-        with col2:
-            st.metric("Unique Entities", entity_summary['unique_entities'])
-        with col3:
-            most_common_type = max(entity_summary['entity_types'], 
-                                 key=entity_summary['entity_types'].get) if entity_summary['entity_types'] else "None"
-            st.metric("Most Common Type", most_common_type)
-        
-        # Top entities chart
-        if entity_summary['top_entities']:
-            entities_fig = self.visualizer.create_entity_chart(
-                entity_summary['top_entities'], 
-                "Top Named Entities"
-            )
-            st.plotly_chart(entities_fig, use_container_width=True)
-        
-        # Entity types breakdown
-        if entity_summary['entity_types']:
-            st.subheader("Entity Types Distribution")
-            entity_types_df = pd.DataFrame(
-                list(entity_summary['entity_types'].items()), 
-                columns=['Entity Type', 'Count']
-            )
-            st.bar_chart(entity_types_df.set_index('Entity Type'))
-    
-    def display_data_table(self, df: pd.DataFrame):
-        """Display the processed data table"""
-        st.header("📋 Processed Data")
-        
-        if df.empty:
-            st.info("No data to display.")
-            return
-        
-        # Filter options
-        col1, col2, col3 = st.columns(3)
-        
-        with col1:
-            sentiment_filter = st.selectbox(
-                "Filter by Sentiment",
-                ["All", "Positive", "Negative", "Neutral"]
-            )
-        
-        with col2:
-            source_filter = st.selectbox(
-                "Filter by Source",
-                ["All"] + list(df['source'].unique()) if 'source' in df.columns else ["All"]
-            )
-        
-        with col3:
-            show_entities = st.checkbox("Show Entities", value=False)
-        
-        # Apply filters
-        display_df = df.copy()
-        
-        if sentiment_filter != "All" and 'sentiment_label' in df.columns:
-            display_df = display_df[display_df['sentiment_label'] == sentiment_filter]
-        
-        if source_filter != "All" and 'source' in df.columns:
-            display_df = display_df[display_df['source'] == source_filter]
-        
-        # Select columns to display
-        display_columns = ['timestamp', 'source', 'text', 'compound', 'sentiment_label']
-        if show_entities and 'entities' in df.columns:
-            display_columns.append('entities')
-        
-        # Display filtered data
-        display_df_filtered = display_df[
-            [col for col in display_columns if col in display_df.columns]
-        ]
-        
-        st.dataframe(
-            display_df_filtered,
-            use_container_width=True,
-            height=400
-        )
-        
-        # Download button
-        if not display_df_filtered.empty:
-            csv = display_df_filtered.to_csv(index=False)
-            st.download_button(
-                label="📥 Download CSV",
-                data=csv,
-                file_name=f"sentiment_analysis_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
-                mime="text/csv"
-            )
-    
-    def run_app(self):
-        """Run the main Streamlit application"""
-        # Title and description
-        st.title("🎭 Sentiment Analysis Pipeline")
+    def render_header(self):
+        """Render the professional header"""
         st.markdown("""
-        This application analyzes sentiment in news headlines and tweets for any topic you specify.
-        It provides comprehensive insights including time-series analysis, entity recognition, and interactive visualizations.
-        """)
-        
-        # Sidebar inputs
-        st.sidebar.header("🔧 Configuration")
-        
-        # Topic input
-        topic = st.sidebar.text_input(
-            "Enter Topic",
-            value="Tesla",
-            help="Enter a topic to analyze (e.g., 'Tesla', 'AI', 'iPhone 16')"
-        )
-        
-        # Time range selection
-        time_range_label = st.sidebar.selectbox(
-            "Select Time Range",
-            list(config.TIME_RANGES.keys()),
-            index=1  # Default to 7 days
-        )
-        days_back = config.TIME_RANGES[time_range_label]
-        
-        # API key warning
-        if config.NEWSAPI_KEY == 'your_newsapi_key_here':
-            st.sidebar.warning(
-                "⚠️ Please set your NewsAPI key in config.py or as an environment variable NEWSAPI_KEY"
+        <div class="main-header">
+            <h1>🎯 Professional Sentiment Analysis Platform</h1>
+            <p>Real-time sentiment analysis across News, Reddit, and HackerNews with advanced phrase insights</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    def render_professional_sidebar(self):
+        """Render the professional sidebar with controls"""
+        with st.sidebar:
+            st.markdown('<div class="professional-sidebar">', unsafe_allow_html=True)
+            
+            st.header("🔧 Analysis Configuration")
+            
+            # Data source selection
+            st.subheader("Data Sources")
+            sources = st.multiselect(
+                "Select data sources:",
+                ["NewsAPI", "Reddit", "HackerNews"],
+                default=["NewsAPI", "Reddit", "HackerNews"],
+                help="Choose which data sources to analyze"
             )
+            
+            # Time range selection
+            st.subheader("Time Range")
+            time_range = st.selectbox(
+                "Analysis period:",
+                [1, 3, 7, 14, 30],
+                index=2,  # Default to 7 days
+                help="Number of days to analyze"
+            )
+            
+            # Search configuration
+            st.subheader("Search Parameters")
+            search_query = st.text_input(
+                "Search keywords:",
+                value="technology AI artificial intelligence",
+                help="Keywords to search for in content"
+            )
+            
+            # Advanced options
+            with st.expander("Advanced Options"):
+                min_text_length = st.slider("Minimum text length", 10, 500, 50)
+                sentiment_threshold = st.slider("Sentiment threshold", 0.01, 0.2, 0.05, 0.01)
+                max_items_per_source = st.slider("Max items per source", 20, 200, 50)
+            
+            # Action buttons
+            st.markdown("---")
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("🚀 Run Analysis", type="primary", width='stretch'):
+                    self.run_professional_analysis(sources, time_range, search_query, 
+                                                 min_text_length, sentiment_threshold, max_items_per_source)
+            
+            with col2:
+                if st.button("🔄 Refresh Data", width='stretch'):
+                    st.session_state.analysis_data = pd.DataFrame()
+                    st.rerun()
+            
+            # Status indicator
+            st.markdown("---")
+            st.subheader("Status")
+            status_color = {
+                "Ready": "🟢",
+                "Processing": "🟡", 
+                "Complete": "🟢",
+                "Error": "🔴"
+            }
+            st.write(f"{status_color.get(st.session_state.processing_status, '⚪')} {st.session_state.processing_status}")
+            
+            if st.session_state.last_update:
+                st.write(f"📅 Last updated: {st.session_state.last_update.strftime('%H:%M:%S')}")
+            
+            st.markdown('</div>', unsafe_allow_html=True)
         
-        # Run analysis button
-        if st.sidebar.button("🚀 Run Analysis", type="primary"):
-            if not topic.strip():
-                st.error("Please enter a topic to analyze.")
+        return sources, time_range, search_query, min_text_length, sentiment_threshold, max_items_per_source
+    
+    def run_professional_analysis(self, sources, time_range, search_query, min_text_length, sentiment_threshold, max_items_per_source):
+        """Run the complete professional analysis pipeline"""
+        try:
+            st.session_state.processing_status = "Processing"
+            
+            with st.spinner("🔄 Fetching data from professional sources..."):
+                # Fetch data from selected sources
+                all_dataframes = []
+                
+                if "NewsAPI" in sources:
+                    with st.spinner("📰 Fetching news articles..."):
+                        news_data = self.data_fetcher.fetch_comprehensive_news(
+                            topic=search_query,
+                            days_back=time_range
+                        )
+                        if not news_data.empty:
+                            all_dataframes.append(news_data)
+                
+                if "Reddit" in sources:
+                    with st.spinner("🔄 Fetching Reddit discussions..."):
+                        reddit_data = self.data_fetcher.fetch_reddit_data(
+                            topic=search_query,
+                            days_back=time_range
+                        )
+                        if not reddit_data.empty:
+                            all_dataframes.append(reddit_data)
+                
+                if "HackerNews" in sources:
+                    with st.spinner("📈 Fetching HackerNews stories..."):
+                        hn_data = self.data_fetcher.fetch_hackernews_data(
+                            topic=search_query,
+                            days_back=time_range
+                        )
+                        if not hn_data.empty:
+                            all_dataframes.append(hn_data)
+            
+            if not all_dataframes:
+                st.warning("No data found for the specified parameters. Try adjusting your search terms or time range.")
                 return
             
-            # Check if we need to fetch new data
-            need_new_data = (
-                st.session_state.last_topic != topic or 
-                st.session_state.last_days != days_back or
-                st.session_state.processed_data.empty
-            )
-            
-            if need_new_data:
-                # Run the pipeline
-                processed_data = self.run_pipeline(topic, days_back)
+            # Create DataFrame and clean data
+            with st.spinner("🧹 Cleaning and processing data..."):
+                df = pd.concat(all_dataframes, ignore_index=True)
+                df = self.data_cleaner.clean_data(df)
                 
-                if not processed_data.empty:
-                    st.session_state.processed_data = processed_data
-                    st.session_state.last_topic = topic
-                    st.session_state.last_days = days_back
-                    st.success("✅ Analysis completed successfully!")
+                # Filter by text length
+                df = df[df['text'].str.len() >= min_text_length]
+            
+            if df.empty:
+                st.warning("No data remaining after cleaning. Try reducing the minimum text length.")
+                return
+            
+            # Perform sentiment analysis
+            with st.spinner("🎯 Analyzing sentiment..."):
+                df = self.sentiment_analyzer.analyze_dataframe(df)
+                df['text_length'] = df['text'].str.len()
+            
+            # Extract entities
+            with st.spinner("🏷️ Extracting entities..."):
+                df = self.entity_extractor.extract_entities_dataframe(df)
+            
+            # Perform phrase analysis
+            with st.spinner("🔍 Analyzing key phrases..."):
+                phrase_insights = self.phrase_analyzer.analyze_phrases(df['text'].tolist())
+                # Extract key phrases list from the returned dictionary
+                if isinstance(phrase_insights, dict) and 'key_phrases' in phrase_insights:
+                    st.session_state.phrase_insights = phrase_insights['key_phrases']
                 else:
-                    st.error("❌ No data could be processed. Please try a different topic or time range.")
-                    return
+                    st.session_state.phrase_insights = []
+            
+            # Store processed data
+            st.session_state.analysis_data = df
+            st.session_state.last_update = datetime.now()
+            st.session_state.processing_status = "Complete"
+            st.session_state.data_quality_score = create_professional_metrics(df)['data_quality_score']
+            
+            st.success(f"✅ Analysis complete! Processed {len(df)} items from {len(sources)} sources.")
+            
+        except Exception as e:
+            logger.error(f"Error during analysis: {e}")
+            st.session_state.processing_status = "Error"
+            st.error(f"Analysis failed: {str(e)}")
+    
+    def render_professional_metrics(self):
+        """Render professional metrics dashboard"""
+        if st.session_state.analysis_data.empty:
+            st.info("👆 Configure your analysis in the sidebar and click 'Run Analysis' to get started.")
+            return
+        
+        df = st.session_state.analysis_data
+        metrics = create_professional_metrics(df)
+        
+        # Display key metrics
+        col1, col2, col3, col4, col5 = st.columns(5)
+        
+        with col1:
+            st.metric(
+                label="📊 Total Items",
+                value=f"{metrics['total_items']:,}",
+                help="Total number of analyzed items"
+            )
+        
+        with col2:
+            sentiment_value = f"{metrics['avg_sentiment']:+.3f}"
+            sentiment_delta = "Positive" if metrics['avg_sentiment'] > 0.05 else "Negative" if metrics['avg_sentiment'] < -0.05 else "Neutral"
+            st.metric(
+                label="💭 Avg Sentiment", 
+                value=sentiment_value,
+                delta=sentiment_delta,
+                help="Average sentiment score (-1 to +1)"
+            )
+        
+        with col3:
+            st.metric(
+                label="⚡ Sentiment Strength",
+                value=f"{metrics['sentiment_strength']:.3f}",
+                help="Absolute strength of sentiment"
+            )
+        
+        with col4:
+            quality_color = "🟢" if metrics['data_quality_score'] > 80 else "🟡" if metrics['data_quality_score'] > 60 else "🔴"
+            st.metric(
+                label=f"{quality_color} Data Quality",
+                value=f"{metrics['data_quality_score']:.0f}%",
+                help="Data quality assessment"
+            )
+        
+        with col5:
+            st.metric(
+                label="🔄 Source Diversity",
+                value=f"{metrics['source_diversity']} sources",
+                help="Number of different data sources"
+            )
+    
+    def render_analysis_tabs(self):
+        """Render the main analysis tabs"""
+        if st.session_state.analysis_data.empty:
+            return
+        
+        df = st.session_state.analysis_data
+        
+        tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+            "📈 Time Series Analysis", 
+            "📊 Distribution Analysis", 
+            "🔍 Key Phrase Insights",
+            "🏷️ Entity Analysis", 
+            "📋 Source Comparison",
+            "📄 Raw Data"
+        ])
+        
+        with tab1:
+            st.subheader("Professional Time Series Analysis")
+            time_fig = self.visualizer.create_professional_time_series(df)
+            st.plotly_chart(time_fig, width='stretch')
+            
+            # Additional insights
+            if len(df) > 1:
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.info(f"📅 **Time Range:** {df['timestamp'].min().strftime('%Y-%m-%d %H:%M')} to {df['timestamp'].max().strftime('%Y-%m-%d %H:%M')}")
+                with col2:
+                    sentiment_trend = "📈 Improving" if df['compound'].iloc[-1] > df['compound'].iloc[0] else "📉 Declining"
+                    st.info(f"**Trend:** {sentiment_trend}")
+        
+        with tab2:
+            st.subheader("Professional Distribution Analysis")
+            dist_fig = self.visualizer.create_professional_distribution(df)
+            st.plotly_chart(dist_fig, width='stretch')
+        
+        with tab3:
+            st.subheader("Advanced Key Phrase Insights")
+            if st.session_state.phrase_insights:
+                # Display top phrases in a professional table
+                phrase_fig = self.visualizer.create_professional_phrase_table(st.session_state.phrase_insights[:20])
+                st.plotly_chart(phrase_fig, width='stretch')
+                
+                # Additional phrase analytics
+                st.subheader("Phrase Analytics")
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    st.markdown("**🔥 Most Discussed Topics:**")
+                    top_phrases = st.session_state.phrase_insights[:5]
+                    for i, phrase in enumerate(top_phrases, 1):
+                        sentiment_emoji = "😊" if phrase['avg_sentiment'] > 0.1 else "😞" if phrase['avg_sentiment'] < -0.1 else "😐"
+                        st.write(f"{i}. {sentiment_emoji} **{phrase['phrase']}** ({phrase['frequency']} mentions)")
+                
+                with col2:
+                    st.markdown("**📊 Sentiment Distribution:**")
+                    positive_phrases = sum(1 for p in st.session_state.phrase_insights[:10] if p['avg_sentiment'] > 0.1)
+                    negative_phrases = sum(1 for p in st.session_state.phrase_insights[:10] if p['avg_sentiment'] < -0.1)
+                    neutral_phrases = 10 - positive_phrases - negative_phrases
+                    
+                    st.write(f"✅ Positive topics: {positive_phrases}")
+                    st.write(f"❌ Negative topics: {negative_phrases}")
+                    st.write(f"⚪ Neutral topics: {neutral_phrases}")
             else:
-                st.info("Using cached results. Click 'Run Analysis' again to refresh data.")
+                st.info("No phrase insights available. Run the analysis to generate phrase data.")
         
-        # Display results if data is available
-        if not st.session_state.processed_data.empty:
-            df = st.session_state.processed_data
-            
-            # Display summary metrics in sidebar
-            self.display_summary_metrics(df)
-            
-            # Main content tabs
-            tab1, tab2, tab3, tab4, tab5 = st.tabs([
-                "📈 Time Series", 
-                "🎯 Distribution", 
-                "☁️ Word Clouds", 
-                "🏷️ Entities", 
-                "📋 Data"
-            ])
-            
-            with tab1:
-                self.display_time_series_analysis(df)
-            
-            with tab2:
-                self.display_sentiment_distribution(df)
-            
-            with tab3:
-                self.display_word_clouds(df)
-            
-            with tab4:
-                self.display_entity_analysis(df)
-            
-            with tab5:
-                self.display_data_table(df)
+        with tab4:
+            st.subheader("Entity Analysis")
+            if 'entities' in df.columns and not df['entities'].empty:
+                # Extract all entities
+                all_entities = []
+                for entities_list in df['entities'].dropna():
+                    if entities_list:  # Check if not empty
+                        all_entities.extend(entities_list)
+                
+                if all_entities:
+                    # Convert list of tuples to DataFrame with proper column names
+                    entity_df = pd.DataFrame(all_entities, columns=['text', 'label'])
+                    entity_counts = entity_df['text'].value_counts().head(15)
+                    
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        st.markdown("**🏷️ Top Entities:**")
+                        for entity, count in entity_counts.items():
+                            st.write(f"• **{entity}**: {count} mentions")
+                    
+                    with col2:
+                        st.markdown("**📊 Entity Types:**")
+                        entity_types = entity_df['label'].value_counts()
+                        for entity_type, count in entity_types.items():
+                            st.write(f"• **{entity_type}**: {count} entities")
+                else:
+                    st.info("No entities extracted from the current dataset.")
+            else:
+                st.info("No entity data available.")
         
-        else:
-            st.info("👆 Enter a topic and click 'Run Analysis' to get started!")
+        with tab5:
+            st.subheader("Source Comparison Analysis")
+            if 'source' in df.columns:
+                source_fig = self.visualizer.create_source_analysis(df)
+                st.plotly_chart(source_fig, width='stretch')
+                
+                # Source statistics
+                source_stats = df.groupby('source').agg({
+                    'compound': ['mean', 'count'],
+                    'sentiment_label': lambda x: x.mode().iloc[0] if not x.empty else 'Neutral'
+                }).round(3)
+                
+                st.subheader("Source Statistics")
+                for source in df['source'].unique():
+                    source_data = df[df['source'] == source]
+                    col1, col2, col3 = st.columns(3)
+                    
+                    with col1:
+                        st.metric(f"📰 {source}", f"{len(source_data)} items")
+                    with col2:
+                        avg_sentiment = source_data['compound'].mean()
+                        st.metric("Avg Sentiment", f"{avg_sentiment:+.3f}")
+                    with col3:
+                        dominant = source_data['sentiment_label'].mode().iloc[0] if not source_data.empty else 'N/A'
+                        st.metric("Dominant", dominant)
+            else:
+                st.info("No source information available.")
+        
+        with tab6:
+            st.subheader("Raw Data Analysis")
             
-            # Show example
-            st.markdown("""
-            ### 📚 How to Use:
-            1. **Enter a Topic**: Type any topic you want to analyze (e.g., "Tesla", "AI", "Climate Change")
-            2. **Select Time Range**: Choose how far back to search (1, 7, or 30 days)
-            3. **Run Analysis**: Click the button to fetch and analyze data
-            4. **Explore Results**: Navigate through the tabs to see different visualizations
+            # Data overview
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("Total Records", len(df))
+            with col2:
+                st.metric("Columns", len(df.columns))
+            with col3:
+                memory_usage = df.memory_usage(deep=True).sum() / 1024 / 1024
+                st.metric("Memory Usage", f"{memory_usage:.1f} MB")
             
-            ### 🔧 Setup Required:
-            - Get a free API key from [NewsAPI.org](https://newsapi.org/)
-            - Add it to your environment variables or update `config.py`
-            - Install required packages: `pip install -r requirements.txt`
-            - Download SpaCy model: `python -m spacy download en_core_web_sm`
-            """)
+            # Sample data
+            st.subheader("Sample Data (First 100 rows)")
+            display_df = df[['timestamp', 'source', 'text', 'compound', 'sentiment_label']].head(100)
+            st.dataframe(display_df, width='stretch')
+            
+            # Download option
+            if st.button("📥 Download Full Dataset"):
+                csv = df.to_csv(index=False)
+                st.download_button(
+                    label="Download CSV",
+                    data=csv,
+                    file_name=f"sentiment_analysis_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                    mime="text/csv"
+                )
+    
+    def run(self):
+        """Run the main application"""
+        self.render_header()
+        
+        # Get configuration from sidebar
+        sources, time_range, search_query, min_text_length, sentiment_threshold, max_items_per_source = self.render_professional_sidebar()
+        
+        # Display metrics
+        self.render_professional_metrics()
+        
+        # Display analysis tabs
+        self.render_analysis_tabs()
+        
+        # Footer
+        st.markdown("---")
+        st.markdown("""
+        <div style='text-align: center; color: #666; font-size: 12px;'>
+            🎯 Professional Sentiment Analysis Platform | Built with advanced NLP and real-time data integration
+        </div>
+        """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
-    # Initialize and run the application
-    pipeline = SentimentAnalysisPipeline()
-    pipeline.run_app()
+    # Create and run the professional application
+    app = ProfessionalSentimentApp()
+    app.run()
