@@ -18,13 +18,22 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class ProfessionalDataFetcher:
-    """Professional-grade data fetcher with multiple real sources"""
+    """Professional-grade data fetcher with advanced relevance filtering"""
     
     def __init__(self):
         self.session = requests.Session()
         self.session.headers.update({
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         })
+        
+        # Initialize relevance filter (import here to avoid circular imports)
+        try:
+            from relevance_filter import relevance_filter
+            self.relevance_filter = relevance_filter
+            logger.info("Advanced relevance filtering enabled")
+        except ImportError:
+            logger.warning("Relevance filter not available, using basic filtering")
+            self.relevance_filter = None
     
     def fetch_reddit_data(self, topic: str, days_back: int = 7) -> pd.DataFrame:
         """Fetch real Reddit posts and comments about the topic"""
@@ -104,70 +113,102 @@ class ProfessionalDataFetcher:
         return pd.DataFrame(columns=['timestamp', 'text', 'source', 'engagement', 'url'])
     
     def fetch_comprehensive_news(self, topic: str, days_back: int = 7) -> pd.DataFrame:
-        """Enhanced NewsAPI fetching with comprehensive coverage"""
+        """Enhanced NewsAPI fetching with intelligent query expansion and relevance filtering"""
         try:
             end_date = datetime.now()
             start_date = end_date - timedelta(days=days_back)
             
-            # Multiple search strategies for comprehensive coverage
-            search_queries = [
-                topic,
-                f'"{topic}"',  # Exact phrase
-                f'{topic} AND (news OR update OR analysis)',
-                f'{topic} OR {topic.lower()}'
-            ]
+            # Get intelligent query expansions
+            if self.relevance_filter:
+                search_queries = self.relevance_filter.expand_search_queries(topic)
+            else:
+                # Fallback to basic query expansion
+                search_queries = [f'"{topic}"', topic, f'{topic} news']
             
             all_articles = []
             seen_titles = set()
             
-            for query in search_queries:
-                params = {
-                    'q': query,
-                    'from': start_date.strftime('%Y-%m-%d'),
-                    'to': end_date.strftime('%Y-%m-%d'),
-                    'sortBy': 'publishedAt',
-                    'language': 'en',
-                    'pageSize': 30,
-                    'apiKey': config.NEWSAPI_KEY
-                }
-                
-                response = self.session.get(config.NEWSAPI_BASE_URL, params=params)
-                time.sleep(0.2)  # Rate limiting
-                
-                if response.status_code == 200:
-                    data = response.json()
-                    if data.get('status') == 'ok':
-                        for article in data.get('articles', []):
-                            title = article.get('title', '').strip()
-                            description = article.get('description', '').strip()
-                            
-                            # Skip duplicates and low-quality content
-                            if title and title not in seen_titles and len(title) > 10:
-                                seen_titles.add(title)
+            for query in search_queries[:3]:  # Limit to top 3 queries to avoid rate limits
+                try:
+                    params = {
+                        'q': query,
+                        'from': start_date.strftime('%Y-%m-%d'),
+                        'to': end_date.strftime('%Y-%m-%d'),
+                        'sortBy': 'relevancy',  # Sort by relevance, not just date
+                        'language': 'en',
+                        'pageSize': 20,  # Smaller batches for better quality
+                        'apiKey': config.NEWSAPI_KEY
+                    }
+                    
+                    response = self.session.get(config.NEWSAPI_BASE_URL, params=params)
+                    time.sleep(0.3)  # Rate limiting
+                    
+                    if response.status_code == 200:
+                        data = response.json()
+                        if data.get('status') == 'ok':
+                            for article in data.get('articles', []):
+                                title = article.get('title', '').strip()
+                                description = article.get('description', '').strip()
                                 
-                                # Combine title and description for richer analysis
-                                full_text = title
-                                if description and len(description) > 10:
-                                    full_text += f". {description}"
-                                
-                                all_articles.append({
-                                    'timestamp': pd.to_datetime(article['publishedAt']).tz_localize(None),
-                                    'text': full_text,
-                                    'source': f"News-{article['source']['name']}",
-                                    'engagement': 0,
-                                    'url': article.get('url', '')
-                                })
+                                # Skip duplicates and low-quality content
+                                if title and title not in seen_titles and len(title) > 10:
+                                    seen_titles.add(title)
+                                    
+                                    # Combine title and description for richer analysis
+                                    full_text = title
+                                    if description and len(description) > 10:
+                                        full_text += f". {description}"
+                                    
+                                    # Basic relevance check before adding
+                                    if self._is_basically_relevant(full_text, topic):
+                                        all_articles.append({
+                                            'timestamp': pd.to_datetime(article['publishedAt']).tz_localize(None),
+                                            'text': full_text,
+                                            'source': f"News-{article['source']['name']}",
+                                            'engagement': 0,
+                                            'url': article.get('url', '')
+                                        })
+                
+                except Exception as e:
+                    logger.warning(f"Error fetching with query '{query}': {e}")
+                    continue
             
             df = pd.DataFrame(all_articles)
+            
             if not df.empty:
+                # Apply advanced relevance filtering if available
+                if self.relevance_filter:
+                    df = self.relevance_filter.filter_by_relevance(df, topic, threshold=0.5)
+                    df = self.relevance_filter.remove_noise(df)
+                
                 df = df.sort_values('timestamp').reset_index(drop=True)
             
-            logger.info(f"Fetched {len(df)} comprehensive news articles for topic: {topic}")
+            logger.info(f"Fetched {len(df)} highly relevant news articles for topic: {topic}")
             return df
             
         except Exception as e:
             logger.error(f"Error fetching comprehensive news: {e}")
             return pd.DataFrame(columns=['timestamp', 'text', 'source', 'engagement', 'url'])
+    
+    def _is_basically_relevant(self, text: str, topic: str) -> bool:
+        """Basic relevance check before advanced filtering"""
+        if not text or not topic:
+            return False
+            
+        text_lower = text.lower()
+        topic_lower = topic.lower()
+        
+        # Direct mention
+        if topic_lower in text_lower:
+            return True
+        
+        # Check individual words for multi-word topics
+        topic_words = topic_lower.split()
+        if len(topic_words) > 1:
+            matches = sum(1 for word in topic_words if word in text_lower and len(word) > 2)
+            return matches >= len(topic_words) * 0.6  # At least 60% of words match
+        
+        return False
 
 # Initialize the professional fetcher
 professional_fetcher = ProfessionalDataFetcher()
@@ -190,7 +231,7 @@ def fetch_twitter_data(topic: str, days_back: int = 7) -> pd.DataFrame:
     return social_data
 
 def fetch_all_data(topic: str, days_back: int = 7) -> pd.DataFrame:
-    """Professional data fetching from multiple real sources"""
+    """Professional data fetching from multiple real sources with advanced relevance filtering"""
     logger.info(f"Starting comprehensive data fetch for topic: {topic}, days back: {days_back}")
     
     # Fetch from multiple real sources
@@ -213,15 +254,37 @@ def fetch_all_data(topic: str, days_back: int = 7) -> pd.DataFrame:
             if col not in combined_df.columns:
                 combined_df[col] = ''
         
+        # Apply final relevance filtering if not already applied
+        try:
+            from relevance_filter import relevance_filter
+            if hasattr(combined_df, 'relevance_score'):
+                # Already filtered, just clean noise
+                combined_df = relevance_filter.remove_noise(combined_df)
+            else:
+                # Apply full filtering
+                combined_df = relevance_filter.filter_by_relevance(combined_df, topic, threshold=0.4)
+                combined_df = relevance_filter.remove_noise(combined_df)
+        except ImportError:
+            logger.warning("Advanced filtering not available")
+        
         # Add data quality metrics
         combined_df['text_length'] = combined_df['text'].str.len()
         combined_df['word_count'] = combined_df['text'].str.split().str.len()
         
-        # Sort by timestamp
-        combined_df = combined_df.sort_values('timestamp').reset_index(drop=True)
+        # Sort by relevance if available, otherwise by timestamp
+        if 'relevance_score' in combined_df.columns:
+            combined_df = combined_df.sort_values(['relevance_score', 'timestamp'], ascending=[False, True])
+        else:
+            combined_df = combined_df.sort_values('timestamp')
         
-        logger.info(f"Total professional data points: {len(combined_df)}")
+        combined_df = combined_df.reset_index(drop=True)
+        
+        logger.info(f"Total highly relevant data points: {len(combined_df)}")
         logger.info(f"Sources: {combined_df['source'].value_counts().to_dict()}")
+        
+        if 'relevance_score' in combined_df.columns:
+            avg_relevance = combined_df['relevance_score'].mean()
+            logger.info(f"Average relevance score: {avg_relevance:.3f}")
         
         return combined_df
     else:

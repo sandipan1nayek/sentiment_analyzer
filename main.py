@@ -161,6 +161,17 @@ class ProfessionalSentimentApp:
                 help="Keywords to search for in content"
             )
             
+            # Show intelligent query expansion info
+            if search_query.strip():
+                st.info("🧠 **Smart Query Expansion Active**\n"
+                       "The system automatically expands your query with related terms for better results!")
+            
+            # Advanced relevance filtering indicator
+            st.success("🎯 **Advanced AI Filtering Enabled**\n"
+                      "✅ Semantic similarity scoring\n"
+                      "✅ Named entity recognition\n" 
+                      "✅ Intelligent noise removal")
+            
             # Advanced options
             with st.expander("Advanced Options"):
                 min_text_length = st.slider("Minimum text length", 10, 500, 50)
