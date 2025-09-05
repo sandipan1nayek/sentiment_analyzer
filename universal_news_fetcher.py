@@ -171,9 +171,9 @@ class UniversalNewsAPIFetcher:
         
         for article in articles:
             try:
-                # Basic article validation
-                title = article.get('title', '').strip()
-                description = article.get('description', '').strip()
+                # Basic article validation with null safety
+                title = (article.get('title') or '').strip()
+                description = (article.get('description') or '').strip()
                 
                 if not title or len(title) < 10:
                     continue
@@ -201,8 +201,8 @@ class UniversalNewsAPIFetcher:
         """
         Calculate relevance score for an article
         """
-        title = article.get('title', '').lower()
-        description = article.get('description', '').lower()
+        title = (article.get('title') or '').lower()
+        description = (article.get('description') or '').lower()
         content = f"{title} {description}"
         
         relevance_score = 0.0
@@ -273,9 +273,9 @@ class UniversalNewsAPIFetcher:
         
         for article in articles:
             try:
-                # Combine title and description for analysis
-                title = article.get('title', '').strip()
-                description = article.get('description', '').strip()
+                # Combine title and description for analysis with null safety
+                title = (article.get('title') or '').strip()
+                description = (article.get('description') or '').strip()
                 
                 # Create comprehensive text content
                 text_content = title
@@ -355,7 +355,7 @@ class UniversalNewsAPIFetcher:
         unique_indices = []
         
         for idx, title in enumerate(df['title']):
-            title_clean = title.lower().strip()
+            title_clean = (title or '').lower().strip()
             
             # Check for exact duplicates
             if title_clean not in seen_titles:

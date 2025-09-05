@@ -54,15 +54,16 @@ A production-grade sentiment analysis platform for real-time analysis of news an
 
 ```
 sentiment_analyzer/
-├── main.py                 # Main Streamlit application
-├── config.py              # Configuration and API keys
-├── data_fetching.py       # Multi-source data collection
-├── data_cleaning.py       # Data preprocessing
-├── sentiment_analysis.py  # VADER sentiment analysis
-├── ner.py                 # Named entity recognition
-├── phrase_analysis.py     # Advanced phrase extraction
-├── visualization.py       # Professional charts
-└── requirements.txt       # Dependencies
+├── main.py                          # Main Streamlit application
+├── config.py                        # Configuration and API keys
+├── smart_integrated_system.py       # Complete end-to-end system
+├── wikidata_domain_detector.py      # Authoritative domain detection
+├── universal_news_fetcher.py        # Single-call universal news API
+├── sentiment_analysis.py            # VADER sentiment analysis
+├── ner.py                          # Named entity recognition
+├── phrase_analysis.py              # Advanced phrase extraction
+├── visualization.py                # Professional charts
+└── requirements.txt                # Dependencies
 ```
 
 ## License
