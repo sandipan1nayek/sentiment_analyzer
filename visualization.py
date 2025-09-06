@@ -336,7 +336,20 @@ def create_professional_metrics(df: pd.DataFrame) -> Dict[str, any]:
     
     # Source diversity
     if 'source' in df.columns:
-        metrics['source_diversity'] = len(df['source'].unique())
+        try:
+            # Try direct unique first
+            metrics['source_diversity'] = len(df['source'].unique())
+        except TypeError:
+            # Handle dict sources
+            source_names = []
+            for source in df['source']:
+                if isinstance(source, dict):
+                    source_names.append(source.get('name', 'Unknown'))
+                elif isinstance(source, str):
+                    source_names.append(source)
+                else:
+                    source_names.append('Unknown')
+            metrics['source_diversity'] = len(set(source_names))
     else:
         metrics['source_diversity'] = 1
     

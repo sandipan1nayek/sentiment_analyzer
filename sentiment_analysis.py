@@ -108,6 +108,72 @@ class SentimentAnalyzer:
         logger.info(f"Sentiment distribution: {sentiment_counts.to_dict()}")
         
         return df_analyzed
+    
+    def analyze_batch(self, texts: List[str], query: str) -> Dict[str, any]:
+        """
+        Analyze sentiment for batch of texts - Expected by efficient system
+        
+        Args:
+            texts (List[str]): List of texts to analyze
+            query (str): Search query (not used but expected)
+            
+        Returns:
+            Dict: Sentiment analysis results
+        """
+        if not texts:
+            return {
+                'sentiments': [],
+                'overall_sentiment': 'Neutral',
+                'distribution': {'Neutral': 0},
+                'confidence_scores': []
+            }
+        
+        sentiments = []
+        compound_scores = []
+        
+        for text in texts:
+            scores = self.analyze_text(text)
+            sentiment_label = self.classify_sentiment(scores['compound'])
+            sentiments.append(sentiment_label)
+            compound_scores.append(scores['compound'])
+        
+        # Calculate distribution
+        from collections import Counter
+        distribution = Counter(sentiments)
+        
+        # Overall sentiment based on average compound score
+        avg_compound = sum(compound_scores) / len(compound_scores) if compound_scores else 0
+        overall_sentiment = self.classify_sentiment(avg_compound)
+        
+        return {
+            'sentiments': sentiments,
+            'overall_sentiment': overall_sentiment,
+            'distribution': dict(distribution),
+            'confidence_scores': [abs(score) for score in compound_scores]
+        }
+    
+    def analyze_sentiment_batch(self, text_list: List[str]) -> List[float]:
+        """
+        Analyze sentiment for a batch of texts
+        
+        Args:
+            text_list (List[str]): List of texts to analyze
+            
+        Returns:
+            List[float]: List of compound sentiment scores
+        """
+        logger.info(f"Starting sentiment analysis for {len(text_list)} texts")
+        
+        sentiment_scores = []
+        for text in text_list:
+            if text and len(text.strip()) > 0:
+                scores = self.analyzer.polarity_scores(text.strip())
+                sentiment_scores.append(scores['compound'])
+            else:
+                sentiment_scores.append(0.0)
+        
+        logger.info("Sentiment analysis completed")
+        return sentiment_scores
 
 def get_sentiment_summary(df: pd.DataFrame) -> Dict:
     """
