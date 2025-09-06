@@ -145,7 +145,6 @@ ehthumbs.db
 Thumbs.db
 
 # API Keys and sensitive data
-config.py
 .env
 *.key
 api_keys.txt
