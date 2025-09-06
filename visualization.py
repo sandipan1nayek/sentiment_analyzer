@@ -265,13 +265,13 @@ class ProfessionalVisualizer:
                 values=['<b>Key Phrase</b>', '<b>Frequency</b>', '<b>Avg Sentiment</b>', '<b>Relevance Score</b>'],
                 fill_color='lightblue',
                 align='left',
-                font=dict(size=12, color='white')
+                font=dict(size=12, color='black')
             ),
             cells=dict(
                 values=[phrases, frequencies, sentiments, relevance],
                 fill_color=[['white', 'lightgray'] * (len(phrases) // 2 + 1)],
                 align='left',
-                font=dict(size=11)
+                font=dict(size=11, color='black')
             )
         )])
         

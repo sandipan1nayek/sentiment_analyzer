@@ -49,6 +49,11 @@ st.set_page_config(
 # Professional CSS styling
 st.markdown("""
 <style>
+    /* Fixed sidebar width */
+    .css-1d391kg {
+        width: 10cm !important;
+    }
+    
     .main-header {
         background: linear-gradient(90deg, #1f77b4, #2ca02c);
         color: white;
@@ -80,6 +85,54 @@ st.markdown("""
         background-color: #f8f9fa;
         padding: 1rem;
         border-radius: 10px;
+    }
+    
+    /* Animation styles */
+    .spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #3498db;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-right: 10px;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .fade-in {
+        animation: fadeIn 0.5s ease-in;
+    }
+    
+    @keyframes fadeIn {
+        0% { opacity: 0; }
+        100% { opacity: 1; }
+    }
+    
+    /* Bigger tab text */
+    .stTabs [data-baseweb="tab-list"] button [data-testid="stMarkdownContainer"] p {
+        font-size: 18px !important;
+        font-weight: 600 !important;
+    }
+    
+    /* Table text styling - make text black for better visibility */
+    .stDataFrame table {
+        color: #000000 !important;
+    }
+    
+    .stDataFrame table th {
+        background-color: #f8f9fa !important;
+        color: #000000 !important;
+        font-weight: bold !important;
+    }
+    
+    .stDataFrame table td {
+        background-color: #ffffff !important;
+        color: #000000 !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -121,13 +174,15 @@ class ProfessionalSentimentApp:
             st.session_state.data_quality_score = 0.0
         if 'phrase_insights' not in st.session_state:
             st.session_state.phrase_insights = []
+        if 'show_parameters' not in st.session_state:
+            st.session_state.show_parameters = False
     
     def render_header(self):
         """Render the professional header"""
         st.markdown("""
         <div class="main-header">
-            <h1>🎯 Professional Sentiment Analysis Platform</h1>
-            <p>Real-time sentiment analysis across News, Reddit, and HackerNews with advanced phrase insights</p>
+            <h1>📊 Sentiment Analysis Platform</h1>
+            <p>Real-time sentiment analysis across News</p>
         </div>
         """, unsafe_allow_html=True)
     
@@ -136,27 +191,9 @@ class ProfessionalSentimentApp:
         with st.sidebar:
             st.markdown('<div class="professional-sidebar">', unsafe_allow_html=True)
             
-            st.header("🔧 Analysis Configuration")
+            st.header("⚙️ Configuration")
             
-            # Data source selection
-            st.subheader("Data Sources")
-            sources = st.multiselect(
-                "Select data sources:",
-                ["NewsAPI", "Reddit", "HackerNews"],
-                default=["NewsAPI", "Reddit", "HackerNews"],
-                help="Choose which data sources to analyze"
-            )
-            
-            # Time range selection
-            st.subheader("Time Range")
-            time_range = st.selectbox(
-                "Analysis period:",
-                [1, 3, 7, 14, 30],
-                index=2,  # Default to 7 days
-                help="Number of days to analyze"
-            )
-            
-            # Search configuration
+            # Search configuration only
             st.subheader("Search Parameters")
             search_query = st.text_input(
                 "Search keywords:",
@@ -164,71 +201,27 @@ class ProfessionalSentimentApp:
                 help="Keywords to search for in content"
             )
             
-            # Show intelligent query expansion info
-            if search_query.strip():
-                st.info("🧠 **Smart Query Expansion Active**\n"
-                       "The system automatically expands your query with related terms for better results!")
-            
-            # Enhanced intelligence capabilities
-            st.success("🚀 **FINAL PRODUCTION SYSTEM v4.0**\n"
-                      "✅ Wikidata-powered domain detection (100% accuracy)\n"
-                      "✅ Universal NewsAPI coverage (ALL sources)\n" 
-                      "✅ Single API call efficiency (2 calls max: Wikidata + NewsAPI)\n"
-                      "✅ Enhanced query construction using authoritative contexts\n"
-                      "✅ Professional sentiment analysis with comprehensive reporting")
-            
-            # Example improvements
-            with st.expander("📈 See the Smart Integration Benefits"):
-                st.markdown("""
-                **Previous System:**
-                - Multiple API calls (3-6 per query)
-                - Limited source coverage (premium only)
-                - Predefined domain lists (inaccurate)
-                
-                **New Final Production System v4.0:**
-                - 🧠 **Wikidata Authority**: 100% accurate domain detection
-                - � **Universal Coverage**: ALL NewsAPI sources (80,000+)
-                - ⚡ **Maximum Efficiency**: Only 2 API calls (1 Wikidata FREE + 1 NewsAPI)
-                - 🎯 **Enhanced Queries**: Context-driven search optimization
-                - 📊 **Professional Analysis**: Comprehensive sentiment reporting
-                """)
-            
-            # Advanced relevance filtering indicator
-            st.success("🎯 **Wikidata + Universal NewsAPI Enabled**\n"
-                      "✅ Authoritative domain classification\n"
-                      "✅ Dynamic context extraction\n"
-                      "✅ Universal source coverage (no restrictions)")
-            
-            # System Performance Dashboard
-            st.subheader("📊 System Performance")
-            
-            # Simple performance metrics without external dependencies
-            col1, col2 = st.columns(2)
-            with col1:
-                st.metric("System Status", "✅ Active")
-            with col2:
-                st.metric("API Mode", "Final Production v4.0")
-                
-            st.success("🏆 System Performance: Excellent - Wikidata + Universal NewsAPI")
-            
-            # Advanced options
-            with st.expander("Advanced Options"):
-                min_text_length = st.slider("Minimum text length", 10, 500, 50)
-                sentiment_threshold = st.slider("Sentiment threshold", 0.01, 0.2, 0.05, 0.01)
-                max_items_per_source = st.slider("Max items per source", 20, 200, 50)
+            # Set default values (no UI controls)
+            sources = ["NewsAPI"]  # Only NewsAPI
+            time_range = 30  # Default to 30 days
+            min_text_length = 50  # Default minimum text length
+            sentiment_threshold = 0.05  # Default sentiment threshold
+            max_items_per_source = 50  # Default max items
             
             # Action buttons
             st.markdown("---")
             
             col1, col2 = st.columns(2)
             with col1:
-                if st.button("🚀 Run Analysis", type="primary", width='stretch'):
+                if st.button("Run Analysis", type="primary", use_container_width=True):
+                    st.session_state.show_parameters = True
                     self.run_professional_analysis(sources, time_range, search_query, 
                                                  min_text_length, sentiment_threshold, max_items_per_source)
             
             with col2:
-                if st.button("🔄 Refresh Data", width='stretch'):
+                if st.button("Clear Data", use_container_width=True):
                     st.session_state.analysis_data = pd.DataFrame()
+                    st.session_state.show_parameters = False
                     st.rerun()
             
             # Status indicator
@@ -242,9 +235,6 @@ class ProfessionalSentimentApp:
             }
             st.write(f"{status_color.get(st.session_state.processing_status, '⚪')} {st.session_state.processing_status}")
             
-            if st.session_state.last_update:
-                st.write(f"📅 Last updated: {st.session_state.last_update.strftime('%H:%M:%S')}")
-            
             st.markdown('</div>', unsafe_allow_html=True)
         
         return sources, time_range, search_query, min_text_length, sentiment_threshold, max_items_per_source
@@ -252,137 +242,68 @@ class ProfessionalSentimentApp:
     def run_professional_analysis(self, sources, time_range, search_query, min_text_length, sentiment_threshold, max_items_per_source):
         """Run the complete professional analysis pipeline"""
         try:
+            # Set processing state
             st.session_state.processing_status = "Processing"
             
-            with st.spinner("🔄 Fetching data from professional sources..."):
-                # Fetch data from selected sources
-                # 🚀 FINAL PRODUCTION SENTIMENT SYSTEM v4.0
-                with st.spinner("🚀 Fetching with FINAL PRODUCTION SYSTEM..."):
-                    st.info("🎯 **FINAL PRODUCTION SENTIMENT SYSTEM v4.0:**\n"
-                           "• **Wikidata Domain Detection**: Authoritative entity classification\n"
-                           "• **Domain-Specific Intelligence**: Tailored queries for each domain type\n"
-                           "• **Dual-Call System**: Guaranteed 50-80 relevant articles\n"
-                           "• **Maximum Relevance**: Only articles containing exact entity mentions")
+            with st.spinner("Fetching data from sources..."):
+                final_results = self.final_working_system.analyze_sentiment(search_query)
+                
+                if final_results and final_results.get('status') in ['SUCCESS', 'PARTIAL_SUCCESS']:
+                    # Convert to DataFrame for compatibility
+                    results_data = []
                     
-                    # Use FINAL PRODUCTION SYSTEM for guaranteed quality
-                    with st.spinner("🔍 Analyzing with production-grade precision..."):
-                        final_results = self.final_working_system.analyze_sentiment(search_query)
+                    # Get actual articles from final analysis
+                    all_articles = final_results.get('articles', [])
+                    sentiment_data = final_results.get('sentiment_analysis', {})
                     
-                    if final_results and final_results.get('status') in ['SUCCESS', 'PARTIAL_SUCCESS']:
-                        # Convert to DataFrame for compatibility
-                        results_data = []
-                        
-                        # Get actual articles from final analysis - FIXED for efficient system
-                        all_articles = final_results.get('articles', [])
+                    for i, article in enumerate(all_articles):
+                        # Use actual sentiment score if available
+                        article_sentiment = 0.0
                         sentiment_data = final_results.get('sentiment_analysis', {})
-                        
-                        for i, article in enumerate(all_articles):  # Show ALL articles (50-80)
-                            # Use actual sentiment score if available
-                            article_sentiment = 0.0
-                            sentiment_data = final_results.get('sentiment_analysis', {})
-                            if sentiment_data.get('overall_sentiment_score'):
-                                article_sentiment = sentiment_data['overall_sentiment_score']
-                                
-                            results_data.append({
-                                'timestamp': pd.to_datetime('now'),
-                                'text': article.get('title', 'No title'),
-                                'source': article.get('source', 'Unknown source'),
-                                'url': article.get('url', ''),
-                                'relevance_score': article.get('relevance_score', 0),
-                                'sentiment': article_sentiment
-                            })
-                        
-                        if results_data:
-                            raw_data = pd.DataFrame(results_data)
-                            all_dataframes = [raw_data]
-                        else:
-                            # Create minimal data for empty results
-                            raw_data = pd.DataFrame([{
-                                'timestamp': pd.to_datetime('now'),
-                                'text': f"Final production analysis completed for {search_query}",
-                                'source': 'final_working_system',
-                                'relevance_score': 100,
-                                'sentiment': 0.0
-                            }])
-                            all_dataframes = [raw_data]
-                        
-                        # Show FINAL PRODUCTION system results
-                        domain_detection = final_results.get('domain_detection', {})
-                        data_sources = final_results.get('data_sources', {})
-                        sentiment_analysis = final_results.get('sentiment_analysis', {})
-                        quality_metrics = final_results.get('quality_metrics', {})
-                        api_usage = final_results.get('api_usage', {})
-                        
-                        st.success(f"🎯 **FINAL PRODUCTION ANALYSIS COMPLETED:**\n"
-                                 f"• **Entity**: {domain_detection.get('primary_domain', 'Unknown')} - {domain_detection.get('entity_type', 'Unknown')}\n"
-                                 f"• **Confidence**: {domain_detection.get('confidence', 0)}% (Wikidata Authority)\n"
-                                 f"• **Total Articles**: {data_sources.get('total_articles', 0)}\n"
-                                 f"• **Wikipedia**: {data_sources.get('source_distribution', {}).get('wikipedia_percentage', 0):.1f}% (FREE)\n"
-                                 f"• **Overall Sentiment**: {sentiment_analysis.get('overall_sentiment_label', 'NEUTRAL').upper()}\n"
-                                 f"• **Sentiment Score**: {sentiment_analysis.get('overall_sentiment_score', 0):.2f}\n"
-                                 f"• **Analysis Confidence**: {sentiment_analysis.get('confidence', 0):.1f}%\n"
-                                 f"• **Quality Grade**: {quality_metrics.get('overall_grade', 'UNKNOWN')}\n"
-                                 f"• **API Efficiency**: {api_usage.get('efficiency_rating', 'UNKNOWN')}")
-                        
-                        # Show source coverage
-                        # Show source coverage from hybrid system
-                        total_sources = data_sources.get('total_sources', 0)
-                        if total_sources > 0:
-                            st.info(f"📊 **Hybrid Source Coverage:**\n"
-                                   f"• **Sources Covered**: {total_sources} (Wikipedia + NewsAPI)\n"
-                                   f"• **Wikipedia Data**: {data_sources.get('source_distribution', {}).get('wikipedia_percentage', 0):.1f}% FREE\n"
-                                   f"• **Cost Efficiency**: {api_usage.get('cost_analysis', 'Unknown')}")
-                        
-                        # Quality indicators
-                        total_articles = data_sources.get('total_articles', 0)
-                        if total_articles >= 15:
-                            st.success("🟢 **QUALITY TARGET MET**: 15+ articles achieved with hybrid approach!")
-                        
-                        if api_usage.get('efficiency_rating') in ['EXCELLENT', 'GOOD']:
-                            st.success(f"🟢 **API EFFICIENCY**: {api_usage.get('efficiency_rating')} - Only {api_usage.get('total_api_calls', 1)} API calls used!")
+                        if sentiment_data.get('overall_sentiment_score'):
+                            article_sentiment = sentiment_data['overall_sentiment_score']
                             
-                        # 🔍 HYBRID QUALITY ANALYSIS  
-                        st.info("📊 Hybrid analysis completed successfully combining Wikipedia + NewsAPI data")
+                        results_data.append({
+                            'timestamp': pd.to_datetime('now'),
+                            'text': article.get('title', 'No title'),
+                            'source': article.get('source', 'Unknown source'),
+                            'url': article.get('url', ''),
+                            'relevance_score': article.get('relevance_score', 0),
+                            'sentiment': article_sentiment
+                        })
                     
+                    if results_data:
+                        raw_data = pd.DataFrame(results_data)
+                        all_dataframes = [raw_data]
                     else:
-                        st.warning("⚠️ Hybrid analysis found limited relevant content. "
-                                 "This may indicate the entity is not currently trending in news, "
-                                 "or may require broader search terms.")
-                        
-                        # Create minimal fallback data
+                        # Create minimal data for empty results
                         raw_data = pd.DataFrame([{
                             'timestamp': pd.to_datetime('now'),
-                            'text': f"Final production sentiment analysis attempted for {search_query}",
+                            'text': f"Analysis completed for {search_query}",
                             'source': 'final_working_system',
                             'relevance_score': 100,
                             'sentiment': 0.0
                         }])
                         all_dataframes = [raw_data]
-                        quality_report = {'overall_score': 50, 'recommendation': 'Try broader search terms'}
-                        
-                        # Quality assessment
-                        quality_status = quality_report.get('status', 'unknown')
-                        quality_score = quality_report.get('quality_score', 0.0)
-                        
-                        if quality_status == 'excellent':
-                            st.success(f"🏆 **Data Quality**: Excellent ({quality_score:.2f}/1.0)")
-                        elif quality_status == 'good':
-                            st.success(f"✅ **Data Quality**: Good ({quality_score:.2f}/1.0)")
-                        elif quality_status == 'acceptable':
-                            st.warning(f"⚠️ **Data Quality**: Acceptable ({quality_score:.2f}/1.0)")
-                        else:
-                            st.error(f"❌ **Data Quality**: Needs Improvement ({quality_score:.2f}/1.0)")
-                        
-                        # Show recommendations
-                        recommendations = quality_report.get('recommendations', [])
-                        if recommendations:
-                            with st.expander("📋 Quality Recommendations"):
-                                for rec in recommendations:
-                                    st.write(f"• {rec}")
-                        
-                        if 'relevance_score' in raw_data.columns:
-                            avg_relevance = raw_data['relevance_score'].mean()
-                            st.info(f"🎯 **Average Relevance Score**: {avg_relevance:.2f}/1.0")
+                    
+                    # Get results for animation state
+                    domain_detection = final_results.get('domain_detection', {})
+                    data_sources = final_results.get('data_sources', {})
+                    sentiment_analysis = final_results.get('sentiment_analysis', {})
+                    
+                    total_articles = data_sources.get('total_articles', 0)
+                    overall_sentiment = sentiment_analysis.get('overall_sentiment_label', 'NEUTRAL')
+                
+                else:
+                    # Create minimal fallback data
+                    raw_data = pd.DataFrame([{
+                        'timestamp': pd.to_datetime('now'),
+                        'text': f"Analysis attempted for {search_query}",
+                        'source': 'final_working_system',
+                        'relevance_score': 100,
+                        'sentiment': 0.0
+                    }])
+                    all_dataframes = [raw_data]
             
             if not all_dataframes:
                 st.warning("No data found for the specified parameters. Try adjusting your search terms or time range.")
@@ -445,7 +366,11 @@ class ProfessionalSentimentApp:
             st.session_state.processing_status = "Complete"
             st.session_state.data_quality_score = create_professional_metrics(df)['data_quality_score']
             
-            st.success(f"✅ Analysis complete! Processed {len(df)} items from {len(sources)} sources.")
+            # Set success state if we have valid data
+            if len(df) > 0:
+                pass  # Analysis completed successfully
+            else:
+                pass  # No data found
             
         except Exception as e:
             logger.error(f"Error during analysis: {e}")
@@ -462,11 +387,11 @@ class ProfessionalSentimentApp:
         metrics = create_professional_metrics(df)
         
         # Display key metrics
-        col1, col2, col3, col4, col5 = st.columns(5)
+        col1, col2, col3, col4 = st.columns(4)
         
         with col1:
             st.metric(
-                label="📊 Total Items",
+                label="Total Items",
                 value=f"{metrics['total_items']:,}",
                 help="Total number of analyzed items"
             )
@@ -475,20 +400,13 @@ class ProfessionalSentimentApp:
             sentiment_value = f"{metrics['avg_sentiment']:+.3f}"
             sentiment_delta = "Positive" if metrics['avg_sentiment'] > 0.05 else "Negative" if metrics['avg_sentiment'] < -0.05 else "Neutral"
             st.metric(
-                label="💭 Avg Sentiment", 
+                label="Avg Sentiment", 
                 value=sentiment_value,
                 delta=sentiment_delta,
                 help="Average sentiment score (-1 to +1)"
             )
         
         with col3:
-            st.metric(
-                label="⚡ Sentiment Strength",
-                value=f"{metrics['sentiment_strength']:.3f}",
-                help="Absolute strength of sentiment"
-            )
-        
-        with col4:
             quality_color = "🟢" if metrics['data_quality_score'] > 80 else "🟡" if metrics['data_quality_score'] > 60 else "🔴"
             st.metric(
                 label=f"{quality_color} Data Quality",
@@ -496,9 +414,9 @@ class ProfessionalSentimentApp:
                 help="Data quality assessment"
             )
         
-        with col5:
+        with col4:
             st.metric(
-                label="🔄 Source Diversity",
+                label="Source Diversity",
                 value=f"{metrics['source_diversity']} sources",
                 help="Number of different data sources"
             )
@@ -510,54 +428,38 @@ class ProfessionalSentimentApp:
         
         df = st.session_state.analysis_data
         
-        tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
-            "📈 Time Series Analysis", 
-            "📊 Distribution Analysis", 
-            "🔍 Key Phrase Insights",
-            "🏷️ Entity Analysis", 
-            "📋 Source Comparison",
-            "📄 Raw Data"
+        tab1, tab2, tab3, tab4 = st.tabs([
+            "📊 Distribution", 
+            "🔍 Key Phrases",
+            "📋 Sources",
+            "📄 Data"
         ])
         
         with tab1:
-            st.subheader("Professional Time Series Analysis")
-            time_fig = self.visualizer.create_professional_time_series(df)
-            st.plotly_chart(time_fig, width='stretch')
-            
-            # Additional insights
-            if len(df) > 1:
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.info(f"📅 **Time Range:** {df['timestamp'].min().strftime('%Y-%m-%d %H:%M')} to {df['timestamp'].max().strftime('%Y-%m-%d %H:%M')}")
-                with col2:
-                    sentiment_trend = "📈 Improving" if df['compound'].iloc[-1] > df['compound'].iloc[0] else "📉 Declining"
-                    st.info(f"**Trend:** {sentiment_trend}")
+            st.subheader("Distribution Analysis")
+            dist_fig = self.visualizer.create_professional_distribution(df)
+            st.plotly_chart(dist_fig, use_container_width=True)
         
         with tab2:
-            st.subheader("Professional Distribution Analysis")
-            dist_fig = self.visualizer.create_professional_distribution(df)
-            st.plotly_chart(dist_fig, width='stretch')
-        
-        with tab3:
-            st.subheader("Advanced Key Phrase Insights")
+            st.subheader("Key Phrase Insights")
             if st.session_state.phrase_insights:
                 # Display top phrases in a professional table
                 phrase_fig = self.visualizer.create_professional_phrase_table(st.session_state.phrase_insights[:20])
-                st.plotly_chart(phrase_fig, width='stretch')
+                st.plotly_chart(phrase_fig, use_container_width=True)
                 
                 # Additional phrase analytics
-                st.subheader("Phrase Analytics")
+                st.subheader("Top Topics")
                 col1, col2 = st.columns(2)
                 
                 with col1:
-                    st.markdown("**🔥 Most Discussed Topics:**")
+                    st.markdown("**Most Discussed:**")
                     top_phrases = st.session_state.phrase_insights[:5]
                     for i, phrase in enumerate(top_phrases, 1):
                         sentiment_emoji = "😊" if phrase['avg_sentiment'] > 0.1 else "😞" if phrase['avg_sentiment'] < -0.1 else "😐"
                         st.write(f"{i}. {sentiment_emoji} **{phrase['phrase']}** ({phrase['frequency']} mentions)")
                 
                 with col2:
-                    st.markdown("**📊 Sentiment Distribution:**")
+                    st.markdown("**Sentiment Distribution:**")
                     positive_phrases = sum(1 for p in st.session_state.phrase_insights[:10] if p['avg_sentiment'] > 0.1)
                     negative_phrases = sum(1 for p in st.session_state.phrase_insights[:10] if p['avg_sentiment'] < -0.1)
                     neutral_phrases = 10 - positive_phrases - negative_phrases
@@ -568,42 +470,11 @@ class ProfessionalSentimentApp:
             else:
                 st.info("No phrase insights available. Run the analysis to generate phrase data.")
         
-        with tab4:
-            st.subheader("Entity Analysis")
-            if 'entities' in df.columns and not df['entities'].empty:
-                # Extract all entities
-                all_entities = []
-                for entities_list in df['entities'].dropna():
-                    if entities_list:  # Check if not empty
-                        all_entities.extend(entities_list)
-                
-                if all_entities:
-                    # Convert list of tuples to DataFrame with proper column names
-                    entity_df = pd.DataFrame(all_entities, columns=['text', 'label'])
-                    entity_counts = entity_df['text'].value_counts().head(15)
-                    
-                    col1, col2 = st.columns(2)
-                    
-                    with col1:
-                        st.markdown("**🏷️ Top Entities:**")
-                        for entity, count in entity_counts.items():
-                            st.write(f"• **{entity}**: {count} mentions")
-                    
-                    with col2:
-                        st.markdown("**📊 Entity Types:**")
-                        entity_types = entity_df['label'].value_counts()
-                        for entity_type, count in entity_types.items():
-                            st.write(f"• **{entity_type}**: {count} entities")
-                else:
-                    st.info("No entities extracted from the current dataset.")
-            else:
-                st.info("No entity data available.")
-        
-        with tab5:
-            st.subheader("Source Comparison Analysis")
+        with tab3:
+            st.subheader("Source Analysis")
             if 'source' in df.columns:
                 source_fig = self.visualizer.create_source_analysis(df)
-                st.plotly_chart(source_fig, width='stretch')
+                st.plotly_chart(source_fig, use_container_width=True)
                 
                 # Source statistics
                 source_stats = df.groupby('source').agg({
@@ -617,7 +488,7 @@ class ProfessionalSentimentApp:
                     col1, col2, col3 = st.columns(3)
                     
                     with col1:
-                        st.metric(f"📰 {source}", f"{len(source_data)} items")
+                        st.metric(f"{source}", f"{len(source_data)} items")
                     with col2:
                         avg_sentiment = source_data['compound'].mean()
                         st.metric("Avg Sentiment", f"{avg_sentiment:+.3f}")
@@ -627,8 +498,8 @@ class ProfessionalSentimentApp:
             else:
                 st.info("No source information available.")
         
-        with tab6:
-            st.subheader("Raw Data Analysis")
+        with tab4:
+            st.subheader("Raw Data")
             
             # Data overview
             col1, col2, col3 = st.columns(3)
@@ -646,7 +517,7 @@ class ProfessionalSentimentApp:
             st.dataframe(display_df, width='stretch')
             
             # Download option
-            if st.button("📥 Download Full Dataset"):
+            if st.button("Download Dataset"):
                 csv = df.to_csv(index=False)
                 st.download_button(
                     label="Download CSV",
