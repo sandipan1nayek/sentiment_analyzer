@@ -193,8 +193,82 @@ class ProfessionalSentimentApp:
             
             st.header("⚙️ Configuration")
             
-            # Search configuration only
-            st.subheader("Search Parameters")
+            # API Key Management Section
+            st.subheader("🔑 API Configuration")
+            
+            # Show current mode status
+            demo_status = config.get_demo_status()
+            if demo_status['is_demo']:
+                st.info(f"{demo_status['message']}\n\n{demo_status['description']}")
+            else:
+                st.success(f"{demo_status['message']}\n\n{demo_status['description']}")
+            
+            # API Key input section
+            with st.expander("🔧 API Key Settings", expanded=not config.is_demo_mode()):
+                current_api_key = config.get_api_key()
+                
+                if current_api_key:
+                    st.success("✅ API Key is configured and ready!")
+                    masked_key = current_api_key[:8] + "*" * (len(current_api_key) - 12) + current_api_key[-4:] if len(current_api_key) > 12 else "*" * len(current_api_key)
+                    st.text(f"Current key: {masked_key}")
+                    
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        if st.button("🔄 Change Key", use_container_width=True):
+                            config.clear_api_key()
+                            st.rerun()
+                    with col2:
+                        if st.button("🎭 Demo Mode", use_container_width=True):
+                            config.clear_api_key()
+                            st.rerun()
+                else:
+                    st.warning("⚠️ No API key found. Using demo mode.")
+                    
+                    # API Key input form
+                    with st.form("api_key_form"):
+                        new_api_key = st.text_input(
+                            "Enter your NewsAPI Key:",
+                            type="password",
+                            help="Get a free API key from https://newsapi.org/"
+                        )
+                        
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            if st.form_submit_button("💾 Save Key", type="primary", use_container_width=True):
+                                if new_api_key and new_api_key.strip():
+                                    is_valid, message = config.validate_api_key(new_api_key)
+                                    if is_valid:
+                                        config.set_api_key(new_api_key)
+                                        st.success("✅ API key saved successfully!")
+                                        st.rerun()
+                                    else:
+                                        st.error(f"❌ {message}")
+                                else:
+                                    st.error("❌ Please enter a valid API key")
+                        
+                        with col2:
+                            if st.form_submit_button("🎭 Continue Demo", use_container_width=True):
+                                st.info("Continuing with demo mode...")
+                                st.rerun()
+                    
+                    # Help section
+                    with st.expander("ℹ️ How to get API Key"):
+                        st.markdown("""
+                        **Steps to get your free NewsAPI key:**
+                        1. Visit [newsapi.org](https://newsapi.org/)
+                        2. Click "Get API Key" 
+                        3. Register with your email
+                        4. Copy your API key
+                        5. Paste it above and click "Save Key"
+                        
+                        **Free tier includes:**
+                        - 500 requests per day
+                        - Real-time news data
+                        - 80,000+ sources worldwide
+                        """)
+            
+            # Search configuration
+            st.subheader("🔍 Search Parameters")
             search_query = st.text_input(
                 "Search keywords:",
                 value="technology AI artificial intelligence",
@@ -226,7 +300,7 @@ class ProfessionalSentimentApp:
             
             # Status indicator
             st.markdown("---")
-            st.subheader("Status")
+            st.subheader("📊 Status")
             status_color = {
                 "Ready": "🟢",
                 "Processing": "🟡", 

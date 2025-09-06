@@ -23,21 +23,31 @@ class FinalWorkingSystem:
     """
     
     def __init__(self):
-        # Use the API key from config.py
+        # Use the smart API key from config.py
         import config
-        self.api_key = config.NEWSAPI_KEY
+        self.api_key = config.get_api_key()
         self.base_url = "https://newsapi.org/v2/everything"
+        self.is_demo_mode = config.is_demo_mode()
         
-        logger.info("🚀 FINAL WORKING SYSTEM - 50+ articles GUARANTEED")
+        if self.is_demo_mode:
+            logger.info("🎭 DEMO MODE - Using sample data")
+        else:
+            logger.info("🚀 LIVE MODE - Using real NewsAPI data")
+            logger.info("🔑 API Key successfully loaded")
     
     def analyze_sentiment(self, query: str) -> Dict[str, Any]:
         """
-        MAIN ANALYSIS - GUARANTEED TO WORK WITH 50+ ARTICLES
+        MAIN ANALYSIS - Works in both demo and live mode
         """
         start_time = datetime.now()
-        logger.info(f"🎯 FINAL ANALYSIS START: {query}")
+        logger.info(f"🎯 ANALYSIS START: {query}")
         
         try:
+            # Check if demo mode
+            if self.is_demo_mode:
+                return self._get_demo_analysis(query)
+            
+            # LIVE MODE: Get real articles from NewsAPI
             # STEP 1: Get ALL articles - no filtering yet
             all_articles = self._get_all_articles(query)
             logger.info(f"📥 TOTAL ARTICLES COLLECTED: {len(all_articles)}")
@@ -232,6 +242,88 @@ class FinalWorkingSystem:
             'system_version': 'Final Working System v1.0',
             'api_calls_made': 1 if len(articles) < 150 else 2,
             'guarantee_met': len(articles) >= 50
+        }
+    
+    def _get_demo_analysis(self, query: str) -> Dict[str, Any]:
+        """Generate demo analysis using sample data"""
+        try:
+            # Import demo data
+            from demo_data import generate_sample_articles
+            
+            # Generate sample articles based on query
+            demo_articles = generate_sample_articles(query, count=75)
+            logger.info(f"🎭 Generated {len(demo_articles)} demo articles")
+            
+            # Perform sentiment analysis on demo data
+            sentiment_results = self._analyze_article_sentiments(demo_articles)
+            
+            return {
+                'status': 'SUCCESS',
+                'mode': 'DEMO',
+                'query': query,
+                'articles': demo_articles,
+                'total_articles': len(demo_articles),
+                'sentiment_analysis': sentiment_results,
+                'execution_time': "0.50s",
+                'system_version': 'Demo Mode v1.0',
+                'api_calls_made': 0,
+                'guarantee_met': True,
+                'demo_notice': '🎭 This is demo data - realistic but generated content'
+            }
+            
+        except Exception as e:
+            logger.error(f"Demo mode error: {e}")
+            # Fallback to basic demo data
+            return self._get_basic_demo_data(query)
+    
+    def _get_basic_demo_data(self, query: str) -> Dict[str, Any]:
+        """Fallback demo data if demo_data.py fails"""
+        basic_articles = [
+            {
+                'title': f'Breakthrough in {query.split()[0] if query else "Technology"}: New Research Shows Promise',
+                'description': 'Recent developments in artificial intelligence and machine learning are showing remarkable progress in various applications.',
+                'content': 'Scientists have made significant advances in AI technology, with new algorithms showing improved performance across multiple benchmarks. The research community is optimistic about future developments.',
+                'url': 'https://example.com/demo1',
+                'source': 'Tech Innovation Daily',
+                'publishedAt': datetime.now().isoformat(),
+                'sentiment_score': 0.6
+            },
+            {
+                'title': f'Challenges in {query.split()[0] if query else "Technology"} Implementation',
+                'description': 'Industry experts discuss potential obstacles and ethical considerations in technology deployment.',
+                'content': 'While progress is being made, researchers caution about potential challenges in implementation and the need for careful consideration of ethical implications.',
+                'url': 'https://example.com/demo2',
+                'source': 'Research Weekly',
+                'publishedAt': datetime.now().isoformat(),
+                'sentiment_score': -0.2
+            }
+        ] * 25  # Repeat to get 50 articles
+        
+        # Add unique identifiers
+        for i, article in enumerate(basic_articles):
+            article['title'] = f"{article['title']} (Part {i+1})"
+            article['url'] = f"{article['url']}_{i}"
+        
+        sentiment_results = {
+            'overall_sentiment_score': 0.2,
+            'positive_count': 35,
+            'negative_count': 10,
+            'neutral_count': 5,
+            'sentiment_distribution': {'positive': 70, 'negative': 20, 'neutral': 10}
+        }
+        
+        return {
+            'status': 'SUCCESS',
+            'mode': 'DEMO_FALLBACK',
+            'query': query,
+            'articles': basic_articles,
+            'total_articles': len(basic_articles),
+            'sentiment_analysis': sentiment_results,
+            'execution_time': "0.10s",
+            'system_version': 'Basic Demo Mode v1.0',
+            'api_calls_made': 0,
+            'guarantee_met': True,
+            'demo_notice': '🎭 This is basic demo data - using fallback sample content'
         }
     
     def _get_error_response(self, query: str, error: str) -> Dict[str, Any]:
