@@ -4,11 +4,13 @@ A production-grade sentiment analysis platform for real-time analysis of news co
 
 ## 📊 Project Overview
 
-This sentiment analysis application provides real-time analysis of news articles with advanced natural language processing capabilities. The platform combines multiple data sources with sophisticated sentiment analysis models to deliver actionable insights through an intuitive web interface.
+This sentiment analysis application provides real-time analysis of news articles with advanced natural language processing capabilities. The platform features **smart demo mode** and **persistent API key storage** for seamless user experience, combining multiple data sources with sophisticated sentiment analysis models to deliver actionable insights through an intuitive web interface.
 
 ### 🎯 Key Features
 
-- **Real-time News Analysis**: Fetches and analyzes current news articles
+- **Smart Demo Mode**: Works immediately without API keys using realistic sample data
+- **Persistent API Key Storage**: One-time API key configuration with automatic saving
+- **Real-time News Analysis**: Fetches and analyzes current news articles (when API key provided)
 - **Advanced Sentiment Detection**: Uses VADER sentiment analysis for accurate emotional tone detection
 - **Named Entity Recognition**: Identifies and extracts key entities from news content
 - **Phrase Analysis**: Contextual phrase extraction with sentiment correlation
@@ -19,263 +21,97 @@ This sentiment analysis application provides real-time analysis of news articles
 
 ### Main Dashboard
 ![Main Dashboard](screenshots/main_dashboard.png)
-*The clean, intuitive interface with sidebar controls and main analysis area*
+*The clean, intuitive interface with sidebar controls and demo mode indicator*
 
 ### Sentiment Distribution Results
 ![Distribution Results](screenshots/distribution_results.png)
 *Interactive sentiment distribution charts with comprehensive metrics*
 
-### Key Phrases Analysis
+### data sources
 ![Key Phrases](screenshots/key_phrases_analysis.png)
-*Advanced phrase extraction with sentiment correlation table (now with improved black text)*
+*Advanced phrase extraction with sentiment correlation table (improved black text)*
 
 ### Sidebar Configuration
 ![Sidebar Controls](screenshots/sidebar_configuration.png)
-*Comprehensive analysis parameters and settings*
+*API key management and analysis parameters*
+
+## 🎭 Demo Mode vs Live Mode
+
+### Demo Mode (Default)
+- **No API key required** - Works immediately upon deployment
+- **Realistic sample data** - Generates contextual articles for any query
+- **Full functionality showcase** - All features work with simulated data
+- **Perfect for demonstrations** - Ideal for portfolio showcasing and testing
+
+### Live Mode (When API Key Provided)
+- **Real-time data** - Fetches current news articles from NewsAPI
+- **Persistent storage** - API key saved securely for future sessions
+- **One-time setup** - Enter API key once, works forever for that browser
+- **Automatic switching** - Seamlessly switches between demo and live mode
 
 ## 🗞️ Data Source Selection
 
-### Chosen Data Source: NewsAPI
+### Primary: NewsAPI (Live Mode) | Sample Data (Demo Mode)
 
-**Primary Data Source**: [NewsAPI](https://newsapi.org/)
+**Live Data Source**: [NewsAPI](https://newsapi.org/)
 
-**Rationale for Selection**:
+**Demo Data**: Intelligently generated sample articles that simulate real news
 
-1. **Comprehensive Coverage**: NewsAPI aggregates from 80,000+ news sources worldwide
-2. **Real-time Updates**: Provides fresh content updated every few minutes
-3. **Reliable API**: Well-documented, stable API with consistent data structure
-4. **Rich Metadata**: Includes publication date, source, author, and full content
-5. **Global Reach**: Covers international news in multiple languages
-6. **Free Tier Available**: Allows up to 1,000 requests per day for development
+**Why This Hybrid Approach**:
 
-**Data Quality Benefits**:
-- High-quality, editorial content from reputable sources
-- Consistent JSON format for reliable parsing
-- Built-in source credibility through vetted publishers
-- Real-time availability ensures current event analysis
+1. **Immediate Usability**: Anyone can try the app without registration
+2. **Professional Demonstration**: Shows full capabilities without API limitations
+3. **Real-world Application**: Provides actual news analysis when desired
+4. **No Barriers**: Public deployment works for everyone
+5. **Portfolio Ready**: Perfect for showcasing in interviews or presentations
+
+**NewsAPI Benefits** (When Used):
+- 80,000+ news sources worldwide
+- Real-time updates every few minutes
+- Reliable API with consistent data structure
+- Rich metadata and global coverage
 
 ## 🤖 Sentiment Analysis Model
 
-### Chosen Model: VADER (Valence Aware Dictionary and sEntiment Reasoner)
-
-**Model Selection**: VADER Sentiment Intensity Analyzer
+### VADER (Valence Aware Dictionary and sEntiment Reasoner)
 
 **Why VADER was Selected**:
 
-1. **Social Media Optimized**: Specifically designed for social media text and news content
-2. **No Training Required**: Pre-built lexicon approach, no need for training data
-3. **Punctuation Sensitive**: Understands emphasis through punctuation (!!!, ???)
-4. **Capitalization Aware**: Recognizes sentiment intensity through capitalization
-5. **Emoticon Recognition**: Interprets emoticons and emojis appropriately
-6. **Speed**: Extremely fast analysis suitable for real-time applications
-7. **Intensity Scoring**: Provides compound scores from -1 (most negative) to +1 (most positive)
+1. **News Content Optimized**: Specifically designed for news and social media text
+2. **No Training Required**: Pre-built lexicon approach
+3. **Real-time Performance**: Extremely fast analysis (2-3 seconds for 50+ articles)
+4. **Punctuation & Context Sensitive**: Understands emphasis and negations
+5. **Intensity Scoring**: Provides compound scores from -1 to +1
 
 **Technical Advantages**:
-- Handles negations effectively ("not good" vs "good")
-- Understands degree modifiers ("very good" vs "good")
-- Works well with informal language and news headlines
-- Provides granular sentiment scores (positive, negative, neutral, compound)
+- Handles informal language and news headlines effectively
+- Provides granular sentiment breakdown (positive, negative, neutral, compound)
+- Works consistently in both demo and live modes
 
-**Alternative Models Considered**:
-- **TextBlob**: Less accurate for news content and social media
-- **BERT-based models**: Too resource-intensive for real-time analysis
-- **Custom models**: Would require extensive training data and maintenance
+## 🚀 Quick Start Guide
 
-### 🔒 **Important Security Note**
+### Option 1: Immediate Demo (No Setup Required)
+1. **Visit the deployed app** (if available) or run locally
+2. **Enter any search query** (e.g., "artificial intelligence", "climate change")
+3. **Click "🚀 Run Analysis"** - Works immediately in demo mode
+4. **Explore results** across all tabs with realistic sample data
 
-**Why is `config.py` not in the repository?**
+### Option 2: Live Data Setup (One-Time Configuration)
+1. **Get your free NewsAPI key**: Visit [newsapi.org](https://newsapi.org/register)
+2. **Open the sidebar** and expand "🔑 API Key Configuration"
+3. **Enter your API key** in the secure input field
+4. **Click "💾 Save API Key"** - Stored permanently for this browser
+5. **Run analysis** - Now uses real-time news data
 
-The `config.py` file contains sensitive API keys and is intentionally excluded from version control for security reasons. This prevents accidental exposure of API keys on public repositories.
-
-**For new users**:
-1. Use the provided `config.py.template` as a starting point
-2. Copy it to `config.py` and add your actual API keys
-3. Never commit `config.py` to version control
-4. The `.gitignore` file already protects against accidental commits
-
-## 🚀 Local Setup and Execution
+## 🔧 Local Installation
 
 ### Prerequisites
-
 - **Python 3.8+** (recommended: Python 3.9 or higher)
-- **Internet connection** for real-time data fetching
-- **NewsAPI key** (free registration at [newsapi.org](https://newsapi.org/))
+- **Internet connection** for data fetching
 
-### Step-by-Step Installation
+### Installation Steps
 
-1. **Clone the Repository**
+1. **Clone Repository**
    ```bash
    git clone https://github.com/sandipan1nayek/sentiment_analyzer.git
    cd sentiment_analyzer
-   ```
-
-2. **Create Virtual Environment** (Recommended)
-   ```bash
-   # Windows
-   python -m venv venv
-   venv\Scripts\activate
-   
-   # macOS/Linux
-   python3 -m venv venv
-   source venv/bin/activate
-   ```
-
-3. **Install Dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Download SpaCy Language Model**
-   ```bash
-   python -m spacy download en_core_web_sm
-   ```
-
-5. **Configure API Keys**
-   
-   **Create Environment File**:
-   
-   a) **Copy the environment template**:
-   ```bash
-   copy .env.template .env
-   # On macOS/Linux: cp .env.template .env
-   ```
-   
-   b) **Get your NewsAPI key**:
-   - Visit [NewsAPI.org](https://newsapi.org/register)
-   - Create a free account (completely free)
-   - Copy your API key from the dashboard
-   
-   c) **Edit .env file**:
-   ```bash
-   # Open .env in any text editor and replace:
-   NEWSAPI_KEY=your_actual_api_key_here
-   ```
-   
-   d) **Example .env file**:
-   ```bash
-   # Your .env should look like this:
-   NEWSAPI_KEY=1234567890abcdef1234567890abcdef
-   ENVIRONMENT=development
-   ```
-
-6. **Run the Application**
-   ```bash
-   streamlit run main.py
-   ```
-
-7. **Access the Application**
-   - Open your web browser
-   - Navigate to `http://localhost:8501`
-   - The sentiment analyzer interface will load
-
-### 🎮 Usage Instructions
-
-1. **Enter Search Query**: Type your search term (e.g., "artificial intelligence", "climate change")
-2. **Configure Settings**: Adjust time range and analysis parameters in the sidebar
-3. **Run Analysis**: Click "🚀 Run Analysis" to fetch and analyze articles
-4. **Explore Results**: Navigate through different tabs:
-   - **Distribution**: View sentiment distribution charts
-   - **Key Phrases**: Analyze important phrases and topics
-   - **Sources**: Examine source diversity and quality
-   - **Data**: Access raw data and download options
-
-## 📁 Project Structure
-
-```
-sentiment_analyzer/
-├── main.py                     # Main Streamlit application
-├── config.py                   # Configuration settings (now in repository)
-├── .env.template              # Environment variables template
-├── .env                       # Your API keys (create from template)
-├── final_working_system.py     # Core news fetching and processing
-├── sentiment_analysis.py       # VADER sentiment analysis implementation
-├── ner.py                     # Named entity recognition with SpaCy
-├── phrase_analysis.py         # Advanced phrase extraction and analysis
-├── visualization.py           # Professional charts and visualizations
-├── requirements.txt           # Python dependencies
-├── README.md                 # Project documentation
-├── .gitignore               # Git ignore patterns (includes .env)
-└── screenshots/             # Application screenshots
-    ├── main_dashboard.png
-    ├── distribution_results.png
-    ├── key_phrases_analysis.png
-    └── sidebar_configuration.png
-```
-
-**Note**: `config.py` is created by the user from `config.py.template` and contains sensitive API keys.
-
-## � Security & Configuration
-
-This project uses environment variables for secure API key management:
-
-- **`.env` file**: Contains your private API keys (never committed to git)
-- **`.env.template`**: Template file showing required environment variables
-- **`config.py`**: Safe to include in repository, loads from environment variables
-- **`.gitignore`**: Ensures `.env` file is never accidentally committed
-
-This approach ensures:
-- ✅ API keys remain private and secure
-- ✅ Easy setup for new developers
-- ✅ No sensitive data in repository history
-- ✅ Production deployment compatibility
-
-## �🛠️ Technical Architecture
-
-### Core Components
-
-- **Frontend**: Streamlit web interface with responsive design
-- **Backend**: Python-based analysis pipeline
-- **Data Processing**: Pandas for data manipulation and analysis
-- **Visualization**: Plotly for interactive charts and graphs
-- **NLP Pipeline**: SpaCy + VADER for comprehensive text analysis
-
-### Data Flow
-
-1. **Input**: User query through web interface
-2. **Fetch**: NewsAPI retrieval with relevance filtering
-3. **Process**: Sentiment analysis, entity extraction, phrase analysis
-4. **Visualize**: Interactive charts and metrics dashboard
-5. **Export**: CSV download capability for further analysis
-
-## 📊 Performance Metrics
-
-- **Analysis Speed**: ~2-3 seconds for 50+ articles
-- **Accuracy**: VADER provides ~80% accuracy on news content
-- **Data Quality**: Built-in quality scoring and source diversity metrics
-- **Reliability**: Guaranteed 50+ articles per query through robust fetching
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/new-feature`)
-3. Commit your changes (`git commit -am 'Add new feature'`)
-4. Push to the branch (`git push origin feature/new-feature`)
-5. Create a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🆘 Troubleshooting
-
-### Common Issues
-
-1. **API Key Error**: Ensure your NewsAPI key is correctly set in `config.py`
-2. **SpaCy Model Missing**: Run `python -m spacy download en_core_web_sm`
-3. **Port Already in Use**: Change the port with `streamlit run main.py --server.port 8502`
-4. **Slow Loading**: Check your internet connection and API rate limits
-
-### Support
-
-For issues and questions:
-- Check the [Issues](https://github.com/sandipan1nayek/sentiment_analyzer/issues) page
-- Create a new issue with detailed description
-- Include error messages and system information
-
-## 🏆 Acknowledgments
-
-- **NewsAPI** for providing comprehensive news data
-- **VADER Sentiment** for robust sentiment analysis
-- **SpaCy** for advanced natural language processing
-- **Streamlit** for the intuitive web framework
-- **Plotly** for interactive visualizations
